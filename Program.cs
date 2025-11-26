@@ -4,14 +4,13 @@ using System.IO;
 namespace LabWork
 {
     // ====================================================================
-    // 1. Point (readonly struct)
+    // 1. Point (public readonly struct)
     // ====================================================================
     /// <summary>
     /// Представляє незмінну координату вершини фігури.
     /// </summary>
     public readonly struct Point
     {
-        // Властивості тільки для читання, що робить структуру незмінною
         public double X { get; } 
         public double Y { get; }
 
@@ -23,13 +22,12 @@ namespace LabWork
 
         public override string ToString()
         {
-            // Форматування для фіксованої точності
             return $"({X:F2}, {Y:F2})"; 
         }
     }
 
     // ====================================================================
-    // 2. Інтерфейс для Геометричних Фігур
+    // 2. Інтерфейс для Геометричних Фігур (додано VertexCount)
     // ====================================================================
     /// <summary>
     /// Визначає контракт для всіх геометричних фігур.
@@ -39,32 +37,35 @@ namespace LabWork
         void SetVertices(params Point[] newVertices);
         void DisplayVertices();
         double GetArea();
+
+        /// <summary>
+        /// Повертає необхідну кількість вершин для фігури.
+        /// </summary>
+        int VertexCount { get; }
     }
 
     // ====================================================================
     // 3. Абстрактний Базовий Клас (FigureBase)
-    // ====================================================================
+    // =================================0====================
     /// <summary>
-    /// Абстрактний клас, що надає спільну основу для всіх фігур.
+    /// Абстрактний клас, що надає спільну основу для всіх фігур, реалізуючи IGeometricFigure.
     /// </summary>
     public abstract class FigureBase : IGeometricFigure
     {
-        // Поля з посиленою інкапсуляцією
         private Point[] _vertices; 
         private readonly int _vertexCount;
         private readonly string _figureName;
 
+        // Реалізація властивості інтерфейсу
+        public int VertexCount => _vertexCount;
+
         // Захищені властивості для доступу з похідних класів
         protected Point[] Vertices => _vertices;
-        protected int VertexCount => _vertexCount;
         protected string FigureName => _figureName;
 
         /// <summary>
         /// Ініціалізує новий екземпляр класу FigureBase.
         /// </summary>
-        /// <param name="count">Необхідна кількість вершин.</param>
-        /// <param name="name">Назва фігури.</param>
-        /// <param name="initialVertices">Початкові координати вершин.</param>
         public FigureBase(int count, string name, params Point[] initialVertices)
         {
             _vertexCount = count;
@@ -84,9 +85,13 @@ namespace LabWork
         public virtual void DisplayVertices()
         {
             Console.WriteLine($"--- Фігура: {FigureName} ({VertexCount} вершин) ---");
-            if (Vertices == null || Vertices.Length == 0)
+
+            // Перевірка ініціалізації: якщо перша точка має координати (0,0),
+            // і це не було задано явно, може бути default-позиція.
+            // Краще перевіряти, чи Vertices ініціалізовано.
+            if (Vertices == null || Vertices.Length != VertexCount)
             {
-                Console.WriteLine("Координати вершин не задані.");
+                Console.WriteLine("Координати вершин не задані або задані некоректно.");
                 return;
             }
 
@@ -95,13 +100,7 @@ namespace LabWork
                 Console.WriteLine($"Вершина {i + 1}: {Vertices[i]}");
             }
         }
-        
-        // Фіналізатор залишено для демонстрації, як вимагалося в завданні
-        ~FigureBase()
-        {
-            // У реальному коді слід уникати, якщо немає unmanaged-ресурсів
-            Console.WriteLine($"<- Деструктор {FigureName} викликано.");
-        }
+        // Фіналізатор (~FigureBase()) ВИДАЛЕНО згідно з рекомендацією
     }
 
     // ====================================================================
@@ -118,11 +117,11 @@ namespace LabWork
         /// <summary>
         /// Встановлює координати трьох вершин трикутника.
         /// </summary>
-        /// <param name="newVertices">Масив Point, що містить 3 вершини.</param>
-        /// <exception cref="ArgumentException">Викидається, якщо передано недостатню кількість вершин.</exception>
+        /// <exception cref="ArgumentException">Викидається, якщо передано не 3 вершини.</exception>
         public override void SetVertices(params Point[] newVertices)
         {
-            if (newVertices == null || newVertices.Length < VertexCount)
+            // Посилена валідація: точна відповідність кількості
+            if (newVertices == null || newVertices.Length != VertexCount)
             {
                 throw new ArgumentException($"Трикутник вимагає рівно {VertexCount} вершин. Передано {newVertices?.Length ?? 0}.", nameof(newVertices));
             }
@@ -136,10 +135,8 @@ namespace LabWork
         /// <summary>
         /// Обчислює площу трикутника за координатами вершин (Формула Гаусса).
         /// </summary>
-        /// <returns>Площа трикутника.</returns>
         public override double GetArea()
         {
-            // Формула площі трикутника за координатами
             double area = 0.5 * Math.Abs(
                 Vertices[0].X * (Vertices[1].Y - Vertices[2].Y) +
                 Vertices[1].X * (Vertices[2].Y - Vertices[0].Y) +
@@ -163,11 +160,11 @@ namespace LabWork
         /// <summary>
         /// Встановлює координати чотирьох вершин чотирикутника.
         /// </summary>
-        /// <param name="newVertices">Масив Point, що містить 4 вершини.</param>
-        /// <exception cref="ArgumentException">Викидається, якщо передано недостатню кількість вершин.</exception>
+        /// <exception cref="ArgumentException">Викидається, якщо передано не 4 вершини.</exception>
         public override void SetVertices(params Point[] newVertices)
         {
-            if (newVertices == null || newVertices.Length < VertexCount)
+            // Посилена валідація: точна відповідність кількості
+            if (newVertices == null || newVertices.Length != VertexCount)
             {
                 throw new ArgumentException($"Чотирикутник вимагає рівно {VertexCount} вершин. Передано {newVertices?.Length ?? 0}.", nameof(newVertices));
             }
@@ -180,21 +177,16 @@ namespace LabWork
 
         /// <summary>
         /// Обчислює площу чотирикутника (сума площ двох трикутників).
-        /// Примітка: метод припускає, що фігура є опуклою, а вершини задані послідовно.
         /// </summary>
-        /// <returns>Площа чотирикутника.</returns>
         public override double GetArea()
         {
             // Площа 4-кутника = Площа(T1-2-3) + Площа(T1-3-4)
-
-            // Площа T1-2-3
             double area123 = 0.5 * Math.Abs(
                 Vertices[0].X * (Vertices[1].Y - Vertices[2].Y) +
                 Vertices[1].X * (Vertices[2].Y - Vertices[0].Y) +
                 Vertices[2].X * (Vertices[0].Y - Vertices[1].Y)
             );
 
-            // Площа T1-3-4
             double area134 = 0.5 * Math.Abs(
                 Vertices[0].X * (Vertices[2].Y - Vertices[3].Y) +
                 Vertices[2].X * (Vertices[3].Y - Vertices[0].Y) +
@@ -206,7 +198,7 @@ namespace LabWork
     }
     
     // ====================================================================
-    // 6. Реалізація ILogger та IDisposable
+    // 6. Реалізація ILogger та IDisposable (FileLogger покращено)
     // ====================================================================
 
     /// <summary>
@@ -237,7 +229,8 @@ namespace LabWork
     {
         private readonly string _filePath = "log.txt";
         private StreamWriter _writer;
-        
+        private bool _disposed = false; // Захист від повторного виклику Dispose
+
         /// <summary>
         /// Ініціалізує FileLogger та відкриває файл для запису.
         /// </summary>
@@ -259,7 +252,7 @@ namespace LabWork
         /// </summary>
         public void LogInfo(string message)
         {
-            if (_writer != null)
+            if (!_disposed && _writer != null)
             {
                 string logEntry = $"[LOG: File] {DateTime.Now:HH:mm:ss} | {message}";
                 _writer.WriteLine(logEntry);
@@ -272,15 +265,31 @@ namespace LabWork
         /// </summary>
         public void Dispose()
         {
-            if (_writer != null)
-            {
-                LogInfo($"--- Сесія логування завершена ({DateTime.Now}) ---");
-                _writer.Dispose(); // Використовуємо Dispose() замість Close()
-                _writer = null;
-                Console.WriteLine("[LOG: File] Файл логу закрито.");
-            }
-            GC.SuppressFinalize(this); // Запобігає виклику фіналізатора (якщо він був би)
+            Dispose(true);
+            GC.SuppressFinalize(this); // Фіналізатор відсутній, але це гарна практика
         }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+
+            if (disposing)
+            {
+                // Звільнення керованих ресурсів
+                if (_writer != null)
+                {
+                    LogInfo($"--- Сесія логування завершена ({DateTime.Now}) ---");
+                    _writer.Dispose(); 
+                    _writer = null;
+                    Console.WriteLine("[LOG: File] Файл логу закрито.");
+                }
+            }
+            // Звільнення некерованих ресурсів (тут відсутні)
+
+            _disposed = true;
+        }
+        
+        // Фіналізатор (~FileLogger()) ВИДАЛЕНО згідно з рекомендацією
     }
 
     // ====================================================================
@@ -291,7 +300,7 @@ namespace LabWork
         static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            Console.WriteLine("## 📐 Лабораторна робота: Абстракція та Інтерфейси (v2.0)\n");
+            Console.WriteLine("## 📐 Лабораторна робота: Абстракція та Інтерфейси (Фінал)\n");
 
             // --- 1. Демонстрація геометричних фігур та поліморфізму ---
             Console.WriteLine("--- Демонстрація Геометричних Фігур ---\n");
@@ -306,30 +315,44 @@ namespace LabWork
             foreach (var figure in figures)
             {
                 figure.DisplayVertices();
+                Console.WriteLine($"Кількість вершин (через інтерфейс): {figure.VertexCount}");
                 double area = figure.GetArea();
                 Console.WriteLine($"✅ Обчислена площа: {area:F2}\n");
             }
             
             // --- 2. Демонстрація валідації SetVertices ---
-            Console.WriteLine("--- Демонстрація Валідації ---");
+            Console.WriteLine("--- Демонстрація Валідації SetVertices ---\n");
             try
             {
-                triangle.SetVertices(new Point(1, 1), new Point(2, 2)); // Спроба передати лише 2 вершини
+                // Спроба встановити невірну кількість вершин (2 замість 3)
+                triangle.SetVertices(new Point(1, 1), new Point(2, 2)); 
             }
             catch (ArgumentException ex)
             {
-                Console.WriteLine($"❌ Помилка валідації: {ex.Message}");
+                Console.WriteLine($"❌ Успішна помилка валідації: {ex.Message}");
+            }
+            
+            // Спроба встановити коректну кількість
+            try
+            {
+                triangle.SetVertices(new Point(5, 5), new Point(6, 6), new Point(7, 7));
+                Console.WriteLine("✅ Коректне оновлення координат виконано.");
+                triangle.DisplayVertices();
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"❌ Помилка при коректному оновленні: {ex.Message}");
             }
             Console.WriteLine(new string('-', 45));
 
 
             // --- 3. Демонстрація ILogger та IDisposable ---
-            Console.WriteLine("--- Демонстрація ILogger та IDisposable ---");
+            Console.WriteLine("--- Демонстрація ILogger та IDisposable ---\n");
 
             ILogger consoleLogger = new ConsoleLogger();
             consoleLogger.LogInfo("Програма розпочала логування.");
 
-            // Використання using блоку гарантує виклик Dispose()
+            // Використання using блоку для FileLogger
             using (var fileLogger = new FileLogger())
             {
                 fileLogger.LogInfo("Логування фігур у файл...");
